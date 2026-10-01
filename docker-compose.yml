@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: agentshield_postgres
+    environment:
+      POSTGRES_USER: agentshield
+      POSTGRES_PASSWORD: agentshield_secret_password
+      POSTGRES_DB: agentshield_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agentshield"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: agentshield_backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://agentshield:agentshield_secret_password@postgres:5432/agentshield_db
+      - SECRET_KEY=agentshield_production_secret_jwt_key_2026
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.frontend
+    container_name: agentshield_frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

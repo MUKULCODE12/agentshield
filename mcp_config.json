@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "agentshield": {
+      "url": "http://localhost:8000/mcp/jsonrpc",
+      "transport": "http",
+      "description": "AgentShield / Sentinel Enterprise AI Security Gateway MCP Server",
+      "headers": {
+        "X-Agent-API-Key": "ag_key_sec_ops_9921"
+      }
+    }
+  }
+}
