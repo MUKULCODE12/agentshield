@@ -1,0 +1,33 @@
+# Render.com Infrastructure Blueprint for AgentShield / Sentinel
+services:
+  # 1. FastAPI Backend Service
+  - type: web
+    name: agentshield-backend
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+
+  # 2. React + Vite Frontend Static Site
+  - type: web
+    name: agentshield-frontend
+    env: static
+    region: oregon
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: frontend/dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_BASE_URL
+        fromService:
+          type: web
+          name: agentshield-backend
+          property: url
