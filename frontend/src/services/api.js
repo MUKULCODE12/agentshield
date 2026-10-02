@@ -1,6 +1,10 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL 
-  ? `${import.meta.env.VITE_API_BASE_URL}/api/v1` 
-  : '/api/v1';
+const rawBase = import.meta.env.VITE_API_BASE_URL;
+let API_BASE = '/api/v1';
+
+if (rawBase && rawBase !== 'undefined' && rawBase.trim() !== '') {
+  const formattedBase = rawBase.startsWith('http') ? rawBase : `https://${rawBase}`;
+  API_BASE = `${formattedBase.replace(/\/$/, '')}/api/v1`;
+}
 
 async function fetchJSON(url, options = {}) {
   const defaultHeaders = {
