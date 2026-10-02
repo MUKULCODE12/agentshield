@@ -4,9 +4,29 @@ import { Sliders, Wrench, Shield, Check, X, Lock, Plus } from 'lucide-react';
 
 export default function ToolsPermissions() {
   const [matrix, setMatrix] = useState([
-    { agent_id: 1, agent_key: 'agent_support_001', agent_name: 'Customer Support AI Agent', tool_id: 1, tool_name: 'search_customer', tool_display_name: 'Search Customer DB', category: 'Customer', is_sensitive: false, is_allowed: true, can_read: true, can_write: false, max_amount_limit: null },
-    { agent_id: 1, agent_key: 'agent_support_001', agent_name: 'Customer Support AI Agent', tool_id: 4, tool_name: 'refund_customer', tool_display_name: 'Process Customer Refund', category: 'Finance', is_sensitive: true, is_allowed: true, can_read: true, can_write: true, max_amount_limit: 50000.0 },
-    { agent_id: 1, agent_key: 'agent_support_001', agent_name: 'Customer Support AI Agent', tool_id: 7, tool_name: 'execute_raw_sql', tool_display_name: 'Execute Raw SQL Query', category: 'Database', is_sensitive: true, is_allowed: false, can_read: false, can_write: false, max_amount_limit: null }
+    {
+      agent_id: 1,
+      agent_key: 'agent_support_001',
+      agent_name: 'Customer Support AI Agent',
+      owner: 'Acme Ops',
+      environment: 'Production',
+      permissions: [
+        { tool_id: 1, tool_name: 'search_customer', tool_display: 'Search Customer DB', category: 'Customer', is_sensitive: false, is_allowed: true, can_read: true, can_write: false, max_amount_limit: null },
+        { tool_id: 4, tool_name: 'refund_customer', tool_display: 'Process Customer Refund', category: 'Finance', is_sensitive: true, is_allowed: true, can_read: true, can_write: true, max_amount_limit: 50000.0 },
+        { tool_id: 7, tool_name: 'execute_raw_sql', tool_display: 'Execute Raw SQL Query', category: 'Database', is_sensitive: true, is_allowed: false, can_read: false, can_write: false, max_amount_limit: null }
+      ]
+    },
+    {
+      agent_id: 2,
+      agent_key: 'agent_sales_002',
+      agent_name: 'Sales & Marketing Agent',
+      owner: 'Growth Team',
+      environment: 'Production',
+      permissions: [
+        { tool_id: 1, tool_name: 'search_customer', tool_display: 'Search Customer DB', category: 'Customer', is_sensitive: false, is_allowed: true, can_read: true, can_write: false, max_amount_limit: null },
+        { tool_id: 3, tool_name: 'send_email', tool_display: 'Send Email Notification', category: 'Communication', is_sensitive: false, is_allowed: true, can_read: true, can_write: true, max_amount_limit: null }
+      ]
+    }
   ]);
   const [loading, setLoading] = useState(false);
   const [showToolModal, setShowToolModal] = useState(false);
@@ -26,7 +46,7 @@ export default function ToolsPermissions() {
   const loadMatrix = async () => {
     try {
       const data = await api.getPermissionMatrix();
-      if (Array.isArray(data) && data.length > 0) {
+      if (Array.isArray(data) && data.length > 0 && data[0].permissions) {
         setMatrix(data);
       }
     } catch (err) {
@@ -100,7 +120,7 @@ export default function ToolsPermissions() {
             </div>
 
             <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {agentGroup.permissions.map((perm) => (
+              {agentGroup.permissions && agentGroup.permissions.map((perm) => (
                 <div
                   key={perm.tool_id}
                   className={`p-5 rounded-2xl border transition space-y-3 ${
@@ -148,9 +168,7 @@ export default function ToolsPermissions() {
                       {perm.max_amount_limit && (
                         <div className="flex justify-between">
                           <span>Max Monetary Limit:</span>
-                          <span className="text-amber-800 font-mono font-bold">
-                            ₹{perm.max_amount_limit.toLocaleString()}
-                          </span>
+                          <span className="text-amber-800 font-mono font-bold">₹{perm.max_amount_limit.toLocaleString()}</span>
                         </div>
                       )}
                     </div>
@@ -162,74 +180,77 @@ export default function ToolsPermissions() {
         ))}
       </div>
 
-      {/* Modal to Register Tool */}
+      {/* Modal for Tool Registration */}
       {showToolModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-xl">
-            <h3 className="text-lg font-mono font-bold text-[#1A103C] flex items-center gap-2">
-              <Wrench className="w-5 h-5 text-[#53389E]" />
-              Register New Business Tool
-            </h3>
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full space-y-4 border border-slate-200 shadow-xl">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <h3 className="font-display font-bold text-[#1A103C]">Register New Enterprise Tool</h3>
+              <button onClick={() => setShowToolModal(false)} className="text-slate-400 hover:text-slate-600">✕</button>
+            </div>
+
             <form onSubmit={handleRegisterTool} className="space-y-3 text-xs">
               <div>
-                <label className="block text-slate-700 mb-1 font-semibold">Tool Identifier (Name)</label>
+                <label className="font-mono font-semibold text-slate-700">Tool System Name</label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. process_payout"
+                  placeholder="e.g. stripe_refund_process"
                   value={toolForm.name}
                   onChange={(e) => setToolForm({ ...toolForm, name: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 focus:outline-none focus:border-[#53389E] font-mono"
+                  className="w-full mt-1 p-2.5 rounded-xl border border-slate-300 text-slate-900 font-mono"
                 />
               </div>
+
               <div>
-                <label className="block text-slate-700 mb-1 font-semibold">Display Title</label>
+                <label className="font-mono font-semibold text-slate-700">Display Name</label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Process Vendor Payout"
+                  placeholder="e.g. Process Stripe Refund"
                   value={toolForm.display_name}
                   onChange={(e) => setToolForm({ ...toolForm, display_name: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 focus:outline-none focus:border-[#53389E]"
+                  className="w-full mt-1 p-2.5 rounded-xl border border-slate-300 text-slate-900"
                 />
               </div>
+
               <div>
-                <label className="block text-slate-700 mb-1 font-semibold">Category</label>
+                <label className="font-mono font-semibold text-slate-700">Category</label>
                 <select
                   value={toolForm.category}
                   onChange={(e) => setToolForm({ ...toolForm, category: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 focus:outline-none focus:border-[#53389E]"
+                  className="w-full mt-1 p-2.5 rounded-xl border border-slate-300 text-slate-900 bg-white"
                 >
                   <option value="Customer">Customer</option>
                   <option value="Finance">Finance</option>
-                  <option value="Communication">Communication</option>
                   <option value="Database">Database</option>
                   <option value="Developer">Developer</option>
+                  <option value="Communication">Communication</option>
                 </select>
               </div>
-              <div className="flex items-center gap-2 pt-1">
+
+              <div className="flex items-center gap-2 pt-2">
                 <input
                   type="checkbox"
-                  id="is_sensitive"
+                  id="sens"
                   checked={toolForm.is_sensitive}
                   onChange={(e) => setToolForm({ ...toolForm, is_sensitive: e.target.checked })}
-                  className="rounded bg-slate-50 border-slate-300 text-[#53389E]"
+                  className="rounded text-[#53389E]"
                 />
-                <label htmlFor="is_sensitive" className="text-slate-800 font-semibold cursor-pointer">
-                  Classify as Sensitive Tool (Requires write privilege)
-                </label>
+                <label htmlFor="sens" className="font-sans text-slate-800 font-medium">Mark as High Sensitivity Tool</label>
               </div>
-              <div className="flex justify-end gap-2 pt-3">
+
+              <div className="flex justify-end gap-2 pt-4">
                 <button
                   type="button"
                   onClick={() => setShowToolModal(false)}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold border border-slate-300"
+                  className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[#53389E] hover:bg-[#432A85] text-white rounded-xl font-semibold"
+                  className="px-4 py-2 rounded-xl bg-[#53389E] hover:bg-[#432A85] text-white font-bold"
                 >
                   Register Tool
                 </button>
