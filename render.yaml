@@ -1,13 +1,12 @@
 # Render.com Infrastructure Blueprint for AgentShield / Sentinel
 services:
-  # 1. FastAPI Backend Web Service
+  # 1. FastAPI Backend Web Service (Docker)
   - type: web
     name: agentshield-backend
-    env: python
+    env: docker
+    dockerfilePath: Dockerfile.backend
     region: oregon
     plan: free
-    buildCommand: pip install -r backend/requirements.txt
-    startCommand: cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: ENVIRONMENT
         value: production
