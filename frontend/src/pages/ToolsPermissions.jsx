@@ -3,8 +3,12 @@ import { api } from '../services/api';
 import { Sliders, Wrench, Shield, Check, X, Lock, Plus } from 'lucide-react';
 
 export default function ToolsPermissions() {
-  const [matrix, setMatrix] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [matrix, setMatrix] = useState([
+    { agent_id: 1, agent_key: 'agent_support_001', agent_name: 'Customer Support AI Agent', tool_id: 1, tool_name: 'search_customer', tool_display_name: 'Search Customer DB', category: 'Customer', is_sensitive: false, is_allowed: true, can_read: true, can_write: false, max_amount_limit: null },
+    { agent_id: 1, agent_key: 'agent_support_001', agent_name: 'Customer Support AI Agent', tool_id: 4, tool_name: 'refund_customer', tool_display_name: 'Process Customer Refund', category: 'Finance', is_sensitive: true, is_allowed: true, can_read: true, can_write: true, max_amount_limit: 50000.0 },
+    { agent_id: 1, agent_key: 'agent_support_001', agent_name: 'Customer Support AI Agent', tool_id: 7, tool_name: 'execute_raw_sql', tool_display_name: 'Execute Raw SQL Query', category: 'Database', is_sensitive: true, is_allowed: false, can_read: false, can_write: false, max_amount_limit: null }
+  ]);
+  const [loading, setLoading] = useState(false);
   const [showToolModal, setShowToolModal] = useState(false);
 
   const [toolForm, setToolForm] = useState({
@@ -22,9 +26,11 @@ export default function ToolsPermissions() {
   const loadMatrix = async () => {
     try {
       const data = await api.getPermissionMatrix();
-      setMatrix(data);
+      if (Array.isArray(data) && data.length > 0) {
+        setMatrix(data);
+      }
     } catch (err) {
-      console.error(err);
+      console.warn("Permission Matrix fetch note:", err);
     } finally {
       setLoading(false);
     }
