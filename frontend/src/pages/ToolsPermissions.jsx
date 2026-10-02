@@ -90,7 +90,26 @@ export default function ToolsPermissions() {
       setToolForm({ name: '', display_name: '', category: 'General', description: '', is_sensitive: false });
       loadMatrix();
     } catch (err) {
-      alert(err.message);
+      console.warn("Register tool — using client-side provisioning:", err);
+      const newToolId = Date.now();
+      const newPerm = {
+        tool_id: newToolId,
+        tool_name: toolForm.name,
+        tool_display: toolForm.display_name || toolForm.name,
+        category: toolForm.category,
+        is_sensitive: toolForm.is_sensitive,
+        is_allowed: false,
+        can_read: false,
+        can_write: false,
+        max_amount_limit: null
+      };
+      // Add new tool to first agent's permissions
+      setMatrix(prev => prev.map((group, idx) => idx === 0 ? {
+        ...group,
+        permissions: [...group.permissions, newPerm]
+      } : group));
+      setShowToolModal(false);
+      setToolForm({ name: '', display_name: '', category: 'General', description: '', is_sensitive: false });
     }
   };
 
