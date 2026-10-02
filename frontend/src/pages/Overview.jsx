@@ -29,7 +29,7 @@ export default function Overview() {
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(loadData, 5000);
+    const interval = setInterval(loadData, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -153,7 +153,7 @@ export default function Overview() {
             <Zap className="w-4 h-4 text-[#53389E]" />
             <h2 className="font-mono font-bold text-sm text-[#1A103C]">Live Agent Gateway Execution Stream</h2>
           </div>
-          <span className="text-xs text-slate-400 font-mono">Polling every 5s...</span>
+          <span className="text-xs text-slate-400 font-mono">Polling every 30s...</span>
         </div>
 
         <div className="overflow-x-auto">

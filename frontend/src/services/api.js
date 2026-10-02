@@ -6,6 +6,8 @@ if (rawBase && rawBase !== 'undefined' && rawBase.trim() !== '') {
   API_BASE = `${formattedBase.replace(/\/$/, '')}/api/v1`;
 }
 
+const API_TIMEOUT_MS = 5000; // 5 second timeout — triggers client-side fallback fast
+
 async function fetchJSON(url, options = {}) {
   const defaultHeaders = {
     'Content-Type': 'application/json',
@@ -16,20 +18,35 @@ async function fetchJSON(url, options = {}) {
     defaultHeaders['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_BASE}${url}`, {
-    ...options,
-    headers: {
-      ...defaultHeaders,
-      ...options.headers,
-    },
-  });
+  // AbortController for timeout — critical for Render free tier cold starts
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ detail: response.statusText }));
-    throw new Error(errorData.detail || 'API Request Failed');
+  try {
+    const response = await fetch(`${API_BASE}${url}`, {
+      ...options,
+      signal: controller.signal,
+      headers: {
+        ...defaultHeaders,
+        ...options.headers,
+      },
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ detail: response.statusText }));
+      throw new Error(errorData.detail || 'API Request Failed');
+    }
+
+    return response.json();
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError') {
+      throw new Error('Request timed out — using local data');
+    }
+    throw err;
   }
-
-  return response.json();
 }
 
 export const api = {
