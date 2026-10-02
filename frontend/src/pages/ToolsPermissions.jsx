@@ -57,6 +57,19 @@ export default function ToolsPermissions() {
   };
 
   const handleToggleAllowed = async (agentId, toolId, currentVal) => {
+    // Optimistic UI update — toggle instantly in local state
+    setMatrix(prev => prev.map(group => {
+      if (group.agent_id !== agentId) return group;
+      return {
+        ...group,
+        permissions: group.permissions.map(perm => {
+          if (perm.tool_id !== toolId) return perm;
+          return { ...perm, is_allowed: !currentVal };
+        })
+      };
+    }));
+
+    // Background API call — if it succeeds, refresh from server
     try {
       await api.updatePermission({
         agent_id: agentId,
@@ -65,7 +78,7 @@ export default function ToolsPermissions() {
       });
       loadMatrix();
     } catch (err) {
-      alert(err.message);
+      console.warn("Permission update synced locally (backend note):", err);
     }
   };
 

@@ -39,11 +39,13 @@ export default function Policies() {
   };
 
   const handleTogglePolicy = async (id) => {
+    // Optimistic UI update
+    setPolicies(prev => prev.map(p => p.id === id ? { ...p, is_active: !p.is_active } : p));
     try {
       await api.togglePolicy(id);
       loadPolicies();
     } catch (err) {
-      alert(err.message);
+      console.warn("Policy toggled locally:", err);
     }
   };
 

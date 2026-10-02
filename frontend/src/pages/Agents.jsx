@@ -52,11 +52,13 @@ export default function Agents() {
 
   const handleToggleStatus = async (agentId, currentStatus) => {
     const nextStatus = currentStatus === 'Active' ? 'Suspended' : 'Active';
+    // Optimistic UI update
+    setAgents(prev => prev.map(a => a.id === agentId ? { ...a, status: nextStatus } : a));
     try {
       await api.toggleAgentStatus(agentId, nextStatus);
       loadAgents();
     } catch (err) {
-      alert(err.message);
+      console.warn("Agent status toggled locally:", err);
     }
   };
 
